@@ -5,8 +5,14 @@
 class passgen (
   $storage_path = $::passgen::params::storage_path,
 ) inherits ::passgen::params {
-  package { 'chronic_duration':
+  package { 'ps-gem-chronic_duration':
     ensure   => present,
+    name     => 'chronic_duration',
+    provider => puppetserver_gem,
+  }
+  package { 'gem-chronic_duration':
+    ensure   => present,
+    name     => 'chronic_duration',
     provider => gem,
   }
   file { $::passgen::params::storage_path:
@@ -21,9 +27,10 @@ class passgen::vault (
   $vault_options = {},
   $vault_options_file = $::passgen::params::vault_options_file,
 ) inherits ::passgen::params {
-  exec { 'install-vault-gem': # puppet duplicate name workaround
-    command => 'gem install vault',
-    unless  => 'gem list | grep vault',
+  package { 'ps-gem-vault':
+    ensure   => '0.6.0',
+    name     => 'vault',
+    provider => puppetserver_gem,
   }
   file { $vault_options_file:
     ensure    => present,

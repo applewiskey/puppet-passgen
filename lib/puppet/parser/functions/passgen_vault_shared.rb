@@ -36,8 +36,7 @@ module Puppet::Parser::Functions
       end
     end
 
-    options_file = lookupvar('passgen::params::vault_options_file')
-    if options_file.nil? then raise Puppet::ParseError, "options file path is empty, probably forgot to include puppet::params" end
+    options_file = '/srv/puppet/vault/passgen_vault_options'
 
     options = YAML::load_file options_file
     if not options.is_a?(Hash) then raise "Config options is not a hash!" end

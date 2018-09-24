@@ -18,7 +18,7 @@ module Puppet::Parser::Functions
         gen_value = `pwgen -s -1 14`.chomp
     end
 
-    store = PStore.new(File.join(lookupvar('passgen::params::storage_path'), filename))
+    store = PStore.new(File.join('/srv/passgen', filename))
     pass = store.transaction { store['value'] }
     stored_expire = store.transaction { store['expire'] }
     expire_duration = store.transaction { store['expire_duration'] }

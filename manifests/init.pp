@@ -2,9 +2,7 @@
 #
 #   include passgen
 #
-class passgen (
-  $storage_path = $::passgen::params::storage_path,
-) inherits ::passgen::params {
+class passgen {
   unless versioncmp($::clientversion, '4') < 0 {
     package { 'ps-gem-chronic_duration':
       ensure   => present,
@@ -17,7 +15,7 @@ class passgen (
     name     => 'chronic_duration',
     provider => gem,
   }
-  file { $::passgen::params::storage_path:
+  file { '/srv/passgen':
     ensure  => directory,
     recurse => true,
     owner   => 'puppet',
@@ -25,10 +23,10 @@ class passgen (
     mode    => '0700',
   }
 }
+
 class passgen::vault (
   $vault_options = {},
-  $vault_options_file = $::passgen::params::vault_options_file,
-) inherits ::passgen::params {
+) {
   unless versioncmp($::clientversion, '4') < 0 {
     package { 'ps-gem-vault':
       ensure   => '0.6.0',
@@ -36,11 +34,17 @@ class passgen::vault (
       provider => puppetserver_gem,
     }
   }
-  file { $vault_options_file:
+  file { '/srv/puppet/vault':
+    ensure => directory,
+    mode   => '0600',
+    owner  => 'puppet',
+    group  => 'puppet'
+  }
+  file { '/srv/puppet/vault/passgen_vault_options':
     ensure    => present,
     mode      => '0600',
-    owner     => puppet,
-    group     => puppet,
+    owner     => 'puppet',
+    group     => 'puppet',
     content   => inline_template('<%= @vault_options.to_yaml %>'),
     show_diff => false,
   }

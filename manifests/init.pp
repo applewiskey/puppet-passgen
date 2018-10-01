@@ -36,7 +36,7 @@ class passgen::vault (
   }
   file { '/srv/puppet/vault':
     ensure => directory,
-    mode   => '0600',
+    mode   => '0700',
     owner  => 'puppet',
     group  => 'puppet'
   }

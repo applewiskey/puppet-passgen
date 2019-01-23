@@ -20,24 +20,34 @@ module Puppet::Parser::Functions
     end
 
     facts = "__common"
-    if args[3]
+    keys = []
+    if args[3] then
+      if not args[3].is_a?(Array) then
+        raise "4th argument must be array of facts"
+      end
+      keys = args[3]
       facts_array = args[3].sort.map do |fact|
         value = lookupvar(fact)
         "#{fact}_#{value}"
       end
       facts = facts_array.join("/")
     end
+
     shared = []
-    if args[4]
-      shared = args[4].map do |rule|
-        rule.map do |key, value|
-          "#{key}_#{value}"
-        end.sort.join('/')
+    if args[4] then
+      if not args[3].is_a?(Array) then
+        raise "5th argument must be array of arrays of values"
+      end
+      shared = args[4].map.with_index do |values, idx|
+        if keys[idx] then
+          values.map.with_index do |value|
+            "#{keys[idx]}_#{value}"
+          end.sort.join('/')
+        end
       end
     end
 
-    options_file = lookupvar('passgen::params::vault_options_file')
-    if options_file.nil? then raise Puppet::ParseError, "options file path is empty, probably forgot to include puppet::params" end
+    options_file = '/srv/puppet/vault/passgen_vault_options'
 
     options = YAML::load_file options_file
     if not options.is_a?(Hash) then raise "Config options is not a hash!" end
@@ -71,11 +81,11 @@ module Puppet::Parser::Functions
         Vault.with_retries(Vault::HTTPConnectionError) do
           Vault.logical.write("secret/shared/#{facts}/#{name}",
                               value: gen_value,
-                                expire: expire ? Time.now.to_i + expire : expire,
-                                expire_duration: args[1],
-                                owner: facts,
-                                shared: shared,
-                                ttl: expire)
+                              expire: expire ? Time.now.to_i + expire : expire,
+                              expire_duration: args[1],
+                              owner: facts,
+                              shared: shared,
+                              ttl: expire)
           pass = gen_value
         end
       end
@@ -86,11 +96,11 @@ module Puppet::Parser::Functions
         Vault.with_retries(Vault::HTTPConnectionError) do
           Vault.logical.write("secret/shared/#{path}/#{name}",
                               value: pass,
-                                expire: expire ? Time.now.to_i + expire : expire,
-                                expire_duration: args[1],
-                                owner: facts,
-                                shared: shared,
-                                ttl: expire)
+                              expire: expire ? Time.now.to_i + expire : expire,
+                              expire_duration: args[1],
+                              owner: facts,
+                              shared: shared,
+                              ttl: expire)
         end
       end
     end
